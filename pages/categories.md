@@ -1,12 +1,14 @@
 ---
 layout: categories
 title: Categories
-description: 哈哈，你找到了我的文章基因库
+description: 文章分类
 keywords: 分类
 comments: false
 menu: 分类
 permalink: /categories/
 ---
+
+> 文章分类
 
 <section class="container posts-content">
 {% assign sorted_categories = site.categories | sort %}

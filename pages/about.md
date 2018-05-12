@@ -10,6 +10,8 @@ permalink: /about/
 
 小林帮
 
+Just Do It！
+
 ## 联系
 
 {% for website in site.data.social %}
