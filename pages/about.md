@@ -12,6 +12,14 @@ permalink: /about/
 
 Just Do It！
 
+## 作者简介
+
+  职业方向：linux软件开发工程师
+  
+  从业时间：2014~至今
+  
+  个人邮箱：xiaolinbang2017@126.com
+
 ## 联系
 
 {% for website in site.data.social %}
