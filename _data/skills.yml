@@ -1,10 +1,8 @@
 - name: Software Engineer Keywords
   keywords:
-      - Java
+      - C
       - C++
       - Python
-      - Design Patterns
-
-- name: Mobile Developer Keywords
-  keywords:
-      - Android
+      - shell
+      - openstack
+      - ceph
