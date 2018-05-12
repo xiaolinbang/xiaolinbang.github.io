@@ -20,8 +20,8 @@ author: xiaolinbang
 organization: 
 organization_url: 
 github_username: 
-location: Shenzhen, China
-email: 
+location: 深圳, China
+email: xiaolinbang2017@126.com
 
 # ---------------- #
 #    Navigation    #
@@ -78,7 +78,7 @@ collections:
         output: true
         permalink: /wiki/:path/
 
-repository: wenfengtou/mzlogin.github.io
+repository: xiaolinbang/xiaolinbang.github.io
 
 # ---------------- #
 #      Comments    #
@@ -90,10 +90,10 @@ repository: wenfengtou/mzlogin.github.io
 ###disqus_username: mzlogin
 ###netease_gentie_key: 560ed243b708465d82d5a0a5f3b83da1
 # 在使用网易云跟帖时可点击显示 Disqus
-lazy_load_disqus : true
+###lazy_load_disqus : true
 
 # ---------------- #
 #    Analytics     #
 # ---------------- #
-google:
-    analytics_id: UA-80669434-1
+###google:
+###    analytics_id: UA-80669434-1
