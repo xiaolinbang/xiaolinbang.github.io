@@ -4,10 +4,10 @@
 baseurl:
 url: https://xiaolinbang.github.io/
 date_format: "ordinal"
-title: 小林帮
-subtitle: 小林帮的github之家
-description: 小林帮的github之家
-keywords: 小林帮, xiaolinbang
+title: 分布式存储
+subtitle: 分布式存储
+description: 分布式存储
+keywords: 分布式，存储，ceph，NAS
 favicon: /favicon.ico
 timezone: Asia/Shenzhen
 encoding: "utf-8"
