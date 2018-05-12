@@ -1,0 +1,231 @@
+# ceph集群手动部署过程
+
+## 说明
+
+（官方有ceph-deploy部署工具，此处使用手动部署是为了更好的理解整个ceph系统）
+
+
+## 物理环境
+三台centos7.3虚拟机，地址配置如下：
+
+    node1	21.1.111.1
+    node2	21.1.111.2
+    node3	21.1.111.3
+
+## 环境准备
+
+1. 安装ceph（所有节点上安装）
+
+    	yum install -y ceph
+
+2. 主机名称
+
+    	cat /etc/hosts
+    	21.1.111.1	node1
+    	21.1.111.2	node2
+    	21.1.111.3	node3
+
+3. 主机名称
+
+	systemctl stop firewalld
+
+
+## 部署准备
+
+1. 生成唯一的fsid（部署节点node1上执行即可）
+
+    	uuidgen
+
+2. 编写配置文件
+
+    	cat /etc/ceph/ceph.conf
+    	[global]
+		fsid = f606a4c7-8e73-4728-b5c4-1f54a1a4ec94
+		mon initial members = node1,node2,node3
+		mon host = 21.1.111.1,21.1.111.2,21.1.111.3
+		auth cluster required = cephx
+		auth service required = cephx
+		auth client required = cephx
+		osd journal size = 1024
+		file store xattr use omap = true
+		osd pool default size = 1
+		osd pool default min size = 1
+		osd pool default pg num = 128
+		osd pool default pgp num = 128
+		osd crush chooseleaf type = 1
+		mon_pg_warn_max_per_osd = 1000
+		mon clock drift allowed = 2
+		mon clock drift warn backoff = 30
+		
+		[mon.node1]
+		host = node1
+		mon addr = 21.1.111.1:6789
+		[mon.node2]
+		host = node2
+		mon addr = 21.1.111.2:6789
+		[mon.node3]
+		host = node3
+		mon addr = 21.1.111.3:6789
+		
+		[osd.0]
+		host = node1
+		addr = 21.1.111.1:6789 
+		osd data = /var/lib/ceph/osd/ceph-0
+		
+		[osd.1]
+		host = node2
+		addr = 21.1.111.2:6789
+		osd data = /var/lib/ceph/osd/ceph-1
+
+		[osd.2]
+		host = node3
+		addr = 21.1.111.3:6789
+		osd data = /var/lib/ceph/osd/ceph-2
+		
+		[mds.node1]
+		host = node1
+		
+		[mds.node2]
+		host = node2
+		
+		[mds.node3]
+		host = node3
+
+3. 生成监视器密匙
+    
+    	ceph-authtool --create-keyring /tmp/ceph.mon.keyring --gen-key -n mon. --cap mon 'allow *'
+
+4. 创建admin用户
+    
+    	ceph-authtool --create-keyring /etc/ceph/ceph.client.admin.keyring --gen-key -n client.admin --set-uid=0 --cap mon 'allow *' --cap osd 'allow *' --cap mds 'allow'
+
+5. 把client.admin密钥加入ceph.mon.keyring
+    
+    	ceph-authtool /tmp/ceph.mon.keyring --import-keyring /etc/ceph/ceph.client.admin.keyring
+
+6. 创建monitor map
+
+    	monmaptool --create --add node1 21.1.111.1 --add node2 21.1.111.2 --add node3 21.1.111.3 --fsid f606a4c7-8e73-4728-b5c4-1f54a1a4ec94 --clobber /tmp/monmap
+
+7. 拷贝/etc/ceph/*,/tmp/monmap, /tmp/ceph.mon.keyring到所有ceph节点
+
+    	scp /etc/ceph/* root@node2:/etc/ceph/
+    	scp /tmp/monmap root@node2:/tmp/monmap
+    	scp /tmp/ceph.mon.keyring root@node2:/tmp/ceph.mon.keyring
+
+## 部署mon
+
+1. 初始化mon数据（所有节点都执行）
+
+    	ceph-mon --mkfs -i node1 --monmap /tmp/monmap --keyring /tmp/ceph.mon.keyring
+
+2. 创建done文件
+
+    	touch /var/lib/ceph/mon/ceph-node1/done
+
+
+3. 启动mon进程
+
+    	systemctl start ceph-mon@node1.service
+
+4. 查看ceph集群状态
+
+    	ceph -s
+
+## 部署osd
+
+1. 在管理节点deploy创建osd id（所有节点下执行）
+
+    	ceph osd create
+
+2. 创建osd工作目录，每个节点对应一个id
+
+    	mkdir /var/lib/ceph/osd/ceph-0
+
+3. 格式化并挂载磁盘
+
+    	mkfs -t xfs /dev/vdb
+    	mount /dev/sdb /var/lib/ceph/osd/ceph-0
+    	
+    	cat /etc/fstab
+    	/dev/vdb   /var/lib/ceph/osd/ceph-0xfs   defaults0 0
+
+4. 初始化OSD数据目录
+
+    	ceph-osd -i 0 --mkfs --mkkey
+
+5. 注册此OSD的密匙
+
+    	ceph auth add osd.0 osd 'allow *' mon 'allow profile osd' -i /var/lib/ceph/osd/ceph-0/keyring
+
+6. 把节点加入CRUSH MAP
+
+    	ceph osd crush add-bucket node1 host
+
+7. 节点放入default根
+
+    	ceph osd crush move node1 root=default
+
+8. 把OSD加入到设备列表、对应主机作为桶加入
+
+    	ceph osd crush add osd.0 1.0 host=node1
+
+9. 启动服务
+
+    	systemctl start ceph-osd@0.service
+
+## 部署mds
+
+1. 创建mds工作目录
+
+    	mkdir -p /var/lib/ceph/mds/ceph-node1
+
+2.  注册MDS的密钥
+
+    	 ceph auth get-or-create mds.node1 mds 'allow ' osd 'allow rwx' mon 'allow profile mds' -o /var/lib/ceph/mds/ceph-node1/keyring
+
+3.  启动mds
+
+    	systemctl start ceph-mds@node1.service
+
+## 创建块设备
+
+1.  创建一个pool
+
+    	ceph osd pool create {pool-name} {pg-num} [{pgp-num}]
+
+2.  查看pool
+
+    	ceph osd lspools
+
+3.  创建块设备
+
+    	rbd --pool {pool-name} create {image-name} --size {megabytes}
+
+4.  挂载并使用块设备
+
+		rbd --pool images map image1
+
+## 创建cephfs
+
+1. 创建两个pool
+
+    	ceph osd pool create metadata 128 128
+    	ceph osd pool create data 128 128
+
+2. 创建cephfs
+
+    	ceph fs new testfs metadata data
+
+3. 查看当前集群中的cephfs
+
+    	ceph fs ls
+
+4. 挂载并使用cephfs
+
+    	mount.ceph node1,node2,node3:/ /mnt/testfs/ -o name=admin,secret=`ceph-authtool -p /etc/ceph/ceph.client.admin.keyring`
+
+
+
+
+
