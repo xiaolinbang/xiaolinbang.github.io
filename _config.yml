@@ -89,8 +89,8 @@ gitalk:
     owner: xiaolinbang
     repo: blog-comments
     oauth:
-        client_id: 899ae8b4d1ba1c337f18
-        client_secret: b5ee91fc9b244396dafa5baa67e58576388ab72c
+        clientID: 899ae8b4d1ba1c337f18
+        clientSecret: b5ee91fc9b244396dafa5baa67e58576388ab72c
 
 # ---------------- #
 #      Search      #
