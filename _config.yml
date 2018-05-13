@@ -88,8 +88,10 @@ comments_provider: gitalk
 gitalk:
     owner: xiaolinbang
     repo: blog-comments
-    clientID: 899ae8b4d1ba1c337f18
-    clientSecret: b5ee91fc9b244396dafa5baa67e58576388ab72c
+#    clientID: 899ae8b4d1ba1c337f18
+#    clientSecret: b5ee91fc9b244396dafa5baa67e58576388ab72c
+    clientID: d2e1cbbd298958076462
+    clientSecret: b42a4178e5fd4a7cf63189ef4b1453b05c375709
 
 # ---------------- #
 #      Search      #
