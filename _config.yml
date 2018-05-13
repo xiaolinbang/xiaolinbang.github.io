@@ -85,6 +85,12 @@ repository: xiaolinbang/xiaolinbang.github.io
 # ---------------- #
 # support provider: git
 comments_provider: gitalk
+gitment:
+    owner: xiaolinbang
+    repo: blog-comments
+    oauth:
+        client_id: 899ae8b4d1ba1c337f18
+        client_secret: b5ee91fc9b244396dafa5baa67e58576388ab72c
 gitalk:
     owner: xiaolinbang
     repo: blog-comments
